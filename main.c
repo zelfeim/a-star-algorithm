@@ -4,6 +4,11 @@
 #include <math.h>
 #include "astar.h"
 
+#include "cell.h"
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 int** map_file_to_grid(int* nrows, int* ncolumns) {
     *nrows = 5;
     *ncolumns = 5;
@@ -53,6 +58,12 @@ void print_grid(int** grid, int nrows, int ncolumns) {
     }
 }
 
+void path_to_grid(cell* path, int** grid) {
+    for(int i = 0; path[i].point.x != -1 && path[i].point.y != -1; ++i) {
+        grid[path[i].point.x][path[i].point.y] = '3';
+    }
+}
+
 int main() {
     // read file to tile array
     int nrows;
@@ -66,6 +77,9 @@ int main() {
     print_grid(grid, nrows, ncolumns);
 
     cell* path = a_star(grid, nrows, ncolumns);
+    path_to_grid(path, grid);
+
+    print_grid(grid, nrows, ncolumns);
 
     free(path);
     free(grid);

@@ -22,12 +22,22 @@ void reconstruct_path(cell current_cell, cell* path) {
     }
 }
 
-cell* a_star(int** grid, int nrows, int ncolumns) {
-    // TODO: don't use some magic value
-    cell* path = malloc(1024 * sizeof(cell));
+cell* new_path(int size) {
+    cell* path = malloc(size * sizeof(cell));
+    for(int i = 0; i < size; ++i) {
+        path[i] = (cell){(point){-1, -1}, 0, 0, 0, NULL};
+    }
 
-    cell open_list[nrows * ncolumns];
-    cell closed_list[nrows * ncolumns];
+    return path;
+}
+
+cell* a_star(int** grid, int nrows, int ncolumns) {
+    const int arr_size = nrows * ncolumns;
+
+    cell* path = new_path(arr_size);
+
+    cell open_list[arr_size];
+    cell closed_list[arr_size];
     int open_list_index = 0, closed_list_index = 0;
 
     const point start_point = { nrows - 1, 0 };
@@ -39,7 +49,13 @@ cell* a_star(int** grid, int nrows, int ncolumns) {
     while(1) {
         int current_index = 0;
         for(int i = 0; i < open_list_index; ++i) {
-            if(open_list[i].f - open_list[current_index].f < 0) {
+            int diff = open_list[i].f - open_list[current_index].f;
+
+            if(diff < 0) {
+                current_index = i;
+            }
+            // Get last added cell
+            if(diff == 0) {
                 current_index = i;
             }
         }
