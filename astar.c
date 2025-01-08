@@ -40,8 +40,8 @@ cell* a_star(int** grid, int nrows, int ncolumns) {
     cell closed_list[arr_size];
     int open_list_index = 0, closed_list_index = 0;
 
-    const point start_point = { nrows - 1, 0 };
-    const point finish_point = { 0, ncolumns - 1 };
+    const point start_point = { 0, 0 };
+    const point finish_point = { nrows - 1, ncolumns - 1 };
 
     cell start_cell = { start_point, 0, calculate_h(start_point, finish_point), 0, NULL };
     open_list[open_list_index++] = start_cell;
