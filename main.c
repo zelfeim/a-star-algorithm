@@ -45,8 +45,6 @@ int** map_file_to_grid(int* nrows, int* ncolumns) {
             continue;
         }
 
-        printf("%d - ", c);
-        printf("%d, %d\n", row, col);
         grid[row][col] = (int)c;
         row++;
     }

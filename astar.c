@@ -31,6 +31,13 @@ cell* new_path(int size) {
     return path;
 }
 
+void remove_element(cell* array, int index, int* array_length) {
+    for(int i = index; i < *array_length; ++i) {
+        array[i] = array[i + 1];
+    }
+    --*array_length;
+}
+
 cell* a_star(int** grid, int nrows, int ncolumns) {
     const int arr_size = nrows * ncolumns;
 
@@ -44,24 +51,23 @@ cell* a_star(int** grid, int nrows, int ncolumns) {
     const point finish_point = { nrows - 1, ncolumns - 1 };
 
     cell start_cell = { start_point, 0, calculate_h(start_point, finish_point), 0, NULL };
+    start_cell.f = start_cell.g + start_cell.h;
     open_list[open_list_index++] = start_cell;
 
     while(1) {
+        // Find last element with lowest f value
         int current_index = 0;
         for(int i = 0; i < open_list_index; ++i) {
-            int diff = open_list[i].f - open_list[current_index].f;
+            float diff = open_list[i].f - open_list[current_index].f;
 
-            if(diff < 0) {
-                current_index = i;
-            }
-            // Get last added cell
-            if(diff == 0) {
+            if(diff <= 0) {
                 current_index = i;
             }
         }
 
         cell current_cell = open_list[current_index];
-        open_list[current_index] = open_list[--open_list_index];
+        remove_element(open_list, current_index, &open_list_index);
+        printf("CURRENT CELL: (%d, %d) - g: %d, h: %f, f: %f\n", current_cell.point.x, current_cell.point.y, current_cell.g, current_cell.h, current_cell.f);
 
         if(current_cell.point.x == finish_point.x && current_cell.point.y == finish_point.y) {
             printf("FOUND PATH, END ALGORITHM.\n\n");
@@ -69,8 +75,6 @@ cell* a_star(int** grid, int nrows, int ncolumns) {
 
             return path;
         }
-
-        printf("CURRENT CELL: (%d, %d) - g: %d, h: %f, f: %f\n", current_cell.point.x, current_cell.point.y, current_cell.g, current_cell.h, current_cell.f);
 
         closed_list[closed_list_index++] = current_cell;
 
@@ -107,8 +111,8 @@ cell* a_star(int** grid, int nrows, int ncolumns) {
             }
 
             int g = current_cell.g + 1;
-            int h = calculate_h(new_point, finish_point);
-            int f = g + h;
+            float h = calculate_h(new_point, finish_point);
+            float f = g + h;
 
             int in_open = 0;
             for(int j = 0; j < open_list_index; ++j) {
