@@ -10,8 +10,8 @@
 #include <GLFW/glfw3.h>
 
 int** map_file_to_grid(int* nrows, int* ncolumns) {
-    *nrows = 5;
-    *ncolumns = 5;
+    *nrows = 20;
+    *ncolumns = 20;
 
     int** grid = malloc(*nrows * sizeof(int*));
     for(int i = 0; i < *nrows; ++i) {
@@ -19,7 +19,6 @@ int** map_file_to_grid(int* nrows, int* ncolumns) {
     }
 
     FILE* f = fopen("grid.txt", "r");
-    char c;
 
     if(f == NULL) {
         printf("Can't open the file");
@@ -27,11 +26,15 @@ int** map_file_to_grid(int* nrows, int* ncolumns) {
     }
 
     int row = 0;
-    int col = 4;
-    do {
-        c = (char)fgetc(f);
+    int col = 19;
 
+    char c;
+    while((c = fgetc(f)) != EOF) {
         if(c == ' ') {
+            continue;
+        }
+
+        if(c == '\r') {
             continue;
         }
 
@@ -42,9 +45,11 @@ int** map_file_to_grid(int* nrows, int* ncolumns) {
             continue;
         }
 
+        printf("%d - ", c);
+        printf("%d, %d\n", row, col);
         grid[row][col] = (int)c;
         row++;
-    } while(c != EOF);
+    }
 
     fclose(f);
 
@@ -70,12 +75,12 @@ void draw_grid() {
     glBegin(GL_LINES);
     glColor3f(1.0f, 1.0f, 1.0f);
 
-    for(int i = 0; i <= 5; ++i) {
+    for(int i = 0; i <= 20; ++i) {
         glVertex2f(i * 1, 0);
-        glVertex2f(i * 1, 5);
+        glVertex2f(i * 1, 20);
 
         glVertex2f(0, i * 1);
-        glVertex2f(5, i * 1);
+        glVertex2f(20, i * 1);
     }
     glEnd();
 }
@@ -96,7 +101,7 @@ void draw_cells(int** grid, int nrows, int ncolumns) {
         for(int j = 0; j < ncolumns; ++j) {
             switch (grid[i][j]) {
                 case '0':
-                    draw_cell(i, j, 0.2f, 0.2f, 0.2f);
+                    draw_cell(i, j, 0.0f, 0.0f, 0.0f);
                     break;
                 case '3':
                     draw_cell(i, j, 0.0f, 0.6f, 0.0f);
@@ -137,7 +142,7 @@ int main() {
     }
     glfwMakeContextCurrent(window);
 
-    glOrtho(0, 5, 0, 5, -1.0, 1.0);
+    glOrtho(0, ncolumns, 0, ncolumns, -1.0, 1.0);
 
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();

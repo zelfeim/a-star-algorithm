@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-const point directions[4] = {{ -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 }};
+const point directions[4] = {{ 0, 1 }, { 0, -1 }, { -1, 0 }, { 1, 0 }};
 
 float calculate_h(point current, point goal) {
     return sqrt(pow(current.x - goal.x, 2) + pow(current.y - goal.y, 2));
