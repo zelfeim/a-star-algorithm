@@ -1,7 +1,7 @@
 #ifndef CELL_H_
 #define CELL_H_
 
-#include "point.h"
+#include "../point/point.h"
 
 typedef struct cell {
     point point;

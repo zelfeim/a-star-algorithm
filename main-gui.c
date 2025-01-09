@@ -1,73 +1,9 @@
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "astar.h"
-
-#include "cell.h"
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-int** map_file_to_grid(int* nrows, int* ncolumns) {
-    *nrows = 20;
-    *ncolumns = 20;
-
-    int** grid = malloc(*nrows * sizeof(int*));
-    for(int i = 0; i < *nrows; ++i) {
-        grid[i] = malloc(*ncolumns * sizeof(int));
-    }
-
-    FILE* f = fopen("grid.txt", "r");
-
-    if(f == NULL) {
-        printf("Can't open the file");
-        return NULL;
-    }
-
-    int row = 0;
-    int col = 19;
-
-    char c;
-    while((c = fgetc(f)) != EOF) {
-        if(c == ' ') {
-            continue;
-        }
-
-        if(c == '\r') {
-            continue;
-        }
-
-        if(c == '\n') {
-            col--;
-            row = 0;
-
-            continue;
-        }
-
-        grid[row][col] = (int)c;
-        row++;
-    }
-
-    fclose(f);
-
-    return grid;
-}
-
-void print_grid(int** grid, int nrows, int ncolumns) {
-    for(int y = nrows - 1; y >= 0; --y) {
-        for(int x = 0; x < ncolumns; ++x) {
-            printf("%c ", grid[x][y]);
-        }
-        printf("\n");
-    }
-}
-
-void path_to_grid(cell* path, int** grid) {
-    for(int i = 0; path[i].point.x != -1 && path[i].point.y != -1; ++i) {
-        grid[path[i].point.x][path[i].point.y] = '3';
-    }
-}
+#include "./cell/cell.h"
+#include "./grid/grid.h"
+#include "./astar/astar.h"
 
 void draw_grid() {
     glBegin(GL_LINES);
@@ -121,12 +57,8 @@ int main() {
         return 1;
     }
 
-    print_grid(grid, nrows, ncolumns);
-
     cell* path = a_star(grid, nrows, ncolumns);
     path_to_grid(path, grid);
-
-    print_grid(grid, nrows, ncolumns);
 
     if(!glfwInit()) {
         return 1;

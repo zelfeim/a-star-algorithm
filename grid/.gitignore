@@ -1,0 +1,10 @@
+.DS_Store
+.idea
+*.log
+tmp/
+
+astar-cli
+astar-gui
+
+map_generator.exe
+ERIA_c1_Astar.pdf

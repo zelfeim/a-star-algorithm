@@ -1,6 +1,6 @@
 #include "astar.h"
-#include "point.h"
-#include "cell.h"
+#include "../point/point.h"
+#include "../cell/cell.h"
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
