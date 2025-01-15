@@ -24,6 +24,7 @@ void reconstruct_path(cell current_cell, cell* path) {
 
 cell* new_path(int size) {
     cell* path = malloc(size * sizeof(cell));
+
     for(int i = 0; i < size; ++i) {
         path[i] = (cell){(point){-1, -1}, 0, 0, 0, NULL};
     }
@@ -54,7 +55,7 @@ cell* a_star(int** grid, int nrows, int ncolumns) {
     start_cell.f = start_cell.g + start_cell.h;
     open_list[open_list_index++] = start_cell;
 
-    while(1) {
+    while(open_list_index > 0) {
         // Find last element with lowest f value
         int current_index = 0;
         for(int i = 0; i < open_list_index; ++i) {
@@ -66,6 +67,7 @@ cell* a_star(int** grid, int nrows, int ncolumns) {
         }
 
         cell current_cell = open_list[current_index];
+
         remove_element(open_list, current_index, &open_list_index);
         printf("CURRENT CELL: (%d, %d) - g: %d, h: %f, f: %f\n", current_cell.point.x, current_cell.point.y, current_cell.g, current_cell.h, current_cell.f);
 
