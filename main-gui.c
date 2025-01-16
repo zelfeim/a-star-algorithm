@@ -151,7 +151,6 @@ int main() {
     struct Application application = {
         .state = SETUP,
         .grid = map_file_to_grid(&nrows, &ncolumns),
-        .value_offset_grid = {0},
         .start_point = {.x = -1, .y = -1},
         .finish_point = {.x = -1, .y = -1},
         .algorithm_run = 0,
@@ -187,8 +186,6 @@ int main() {
 
     cell* path;
 
-    point start_point;
-    point finish_point;
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
