@@ -66,6 +66,11 @@ void path_to_grid(cell* path, int** grid) {
             continue;
         }
 
+        if(grid[x][y] == '9') {
+            grid[x][y] = '7';
+            continue;
+        }
+
         grid[x][y] = '3';
     }
 }
@@ -73,8 +78,12 @@ void path_to_grid(cell* path, int** grid) {
 void clear_path_from_grid(int** grid, int nrows, int ncolumns) {
     for(int y = 0; y < ncolumns; ++y) {
         for(int x = 0; x < nrows; ++x) {
-            if(grid[y][x] == '3') {
-                grid[y][x] = '0';
+            switch(grid[x][y]) {
+                case '3':
+                case '7':
+                case '9':
+                    grid[x][y] = '0';
+                    break;
             }
         }
     }
