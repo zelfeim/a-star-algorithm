@@ -59,6 +59,23 @@ void print_grid(int** grid, int nrows, int ncolumns) {
 
 void path_to_grid(cell* path, int** grid) {
     for(int i = 0; path[i].point.x != -1 && path[i].point.y != -1; ++i) {
-        grid[path[i].point.x][path[i].point.y] = '3';
+        int x = path[i].point.x;
+        int y = path[i].point.y;
+
+        if(grid[x][y] == '1' || grid[x][y] == '2') {
+            continue;
+        }
+
+        grid[x][y] = '3';
+    }
+}
+
+void clear_path_from_grid(int** grid, int nrows, int ncolumns) {
+    for(int y = 0; y < ncolumns; ++y) {
+        for(int x = 0; x < nrows; ++x) {
+            if(grid[y][x] == '3') {
+                grid[y][x] = '0';
+            }
+        }
     }
 }
