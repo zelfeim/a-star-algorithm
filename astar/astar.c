@@ -39,7 +39,7 @@ void remove_element(cell* array, int index, int* array_length) {
     --*array_length;
 }
 
-cell* a_star(int** grid, int nrows, int ncolumns) {
+cell* a_star(int** grid, int nrows, int ncolumns, point start_point, point finish_point) {
     const int arr_size = nrows * ncolumns;
 
     cell* path = new_path(arr_size);
@@ -47,9 +47,6 @@ cell* a_star(int** grid, int nrows, int ncolumns) {
     cell open_list[arr_size];
     cell closed_list[arr_size];
     int open_list_index = 0, closed_list_index = 0;
-
-    const point start_point = { 0, 0 };
-    const point finish_point = { nrows - 1, ncolumns - 1 };
 
     cell start_cell = { start_point, 0, calculate_h(start_point, finish_point), 0, NULL };
     start_cell.f = start_cell.g + start_cell.h;

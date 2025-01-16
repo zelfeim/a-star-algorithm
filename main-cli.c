@@ -15,7 +15,7 @@ int main() {
 
     print_grid(grid, nrows, ncolumns);
 
-    cell* path = a_star(grid, nrows, ncolumns);
+    cell* path = a_star(grid, nrows, ncolumns, (point){.x = 0, .y = 0}, (point){.x = 0, .y = 0});
     if(path[0].point.x == -1 && path[0].point.y == -1) {
         printf("No path was found!\n");
         return 1;
