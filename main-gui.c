@@ -5,16 +5,37 @@
 #include "./grid/grid.h"
 #include "./astar/astar.h"
 
+#include <stdbool.h>
+#include <stdio.h>
+
+// TODO: Możliwość zazanczania ścieżki
+// TODO: Różnice wartości zaznaczonej i najoptymalniejszej ścieżki
+
+enum State {
+    SETUP,
+    DRAW_PATH,
+    RUN_ALGORITHM
+};
+
+struct Application {
+    enum State state;
+    int** grid;
+    point start_point;
+    point finish_point;
+    int algorithm_run;
+};
+
+
 void draw_grid() {
     glBegin(GL_LINES);
     glColor3f(1.0f, 1.0f, 1.0f);
 
     for(int i = 0; i <= 20; ++i) {
-        glVertex2f(i * 1, 0);
-        glVertex2f(i * 1, 20);
+         glVertex2f(i * 1, 0);
+         glVertex2f(i * 1, 40);
 
-        glVertex2f(0, i * 1);
-        glVertex2f(20, i * 1);
+         glVertex2f(0, i * 1);
+         glVertex2f(40, i * 1);
     }
     glEnd();
 }
@@ -30,6 +51,60 @@ void draw_cell(int x, int y, float r, float g, float b) {
     glEnd();
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    struct Application* application = glfwGetWindowUserPointer(window);
+
+    // Close the window
+    if(key == GLFW_KEY_Q && action == GLFW_PRESS) {
+        glfwDestroyWindow(window);
+        application->state = -1;
+    }
+
+    // Run algorithm and draw its results
+    if(key == GLFW_KEY_S && action == GLFW_PRESS) {
+        clear_path_from_grid(application->grid, 20, 20);
+        application->state = RUN_ALGORITHM;
+        application->algorithm_run = 0;
+    }
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    struct Application* application = glfwGetWindowUserPointer(window);
+
+    double cell_width = 800.0f/20;
+    double cell_height = 600.0f/20;
+
+    double x_pos, y_pos;
+    glfwGetCursorPos(window, &x_pos, &y_pos);
+    printf("cursor pos: (%f, %f)\n", x_pos, y_pos);
+
+    int x = x_pos / cell_width;
+    int y = 20 - (y_pos / cell_height);
+    printf("grid pos - %d , %d\n", x, y);
+
+    // Select the cells
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        int* val = &application->grid[x][y];
+        if(*val == '5') {
+            *val = '0';
+        } else {
+            *val = '5';
+        }
+    }
+
+    if(button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+        if(application->start_point.x == -1 && application->start_point.y == -1) {
+            application->start_point.x = x;
+            application->start_point.y = y;
+            application->grid[x][y] = '1';
+        } else if(application->finish_point.x == -1 && application->finish_point.y == -1) {
+            application->finish_point.x = x;
+            application->finish_point.y = y;
+            application->grid[x][y] = '2';
+        }
+    }
+}
+
 void draw_cells(int** grid, int nrows, int ncolumns) {
     for(int i = 0; i < nrows; ++i) {
         for(int j = 0; j < ncolumns; ++j) {
@@ -37,11 +112,17 @@ void draw_cells(int** grid, int nrows, int ncolumns) {
                 case '0':
                     draw_cell(i, j, 0.0f, 0.0f, 0.0f);
                     break;
+                case '1':
+                    draw_cell(i, j, 0.0f, 1.0f, 0.0f);
+                    break;
+                case '2':
+                    draw_cell(i, j, 1.0f, 0.0f, 0.0f);
+                    break;
                 case '3':
-                    draw_cell(i, j, 0.0f, 0.6f, 0.0f);
+                    draw_cell(i, j, 0.6f, 0.6f, 0.0f);
                     break;
                 case '5':
-                    draw_cell(i, j, 0.6f, 0.0f, 0.0f);
+                    draw_cell(i, j, 0.5f, 0.5f, 0.5f);
                     break;
             }
         }
@@ -49,16 +130,18 @@ void draw_cells(int** grid, int nrows, int ncolumns) {
 }
 
 int main() {
-    int nrows;
-    int ncolumns;
-    int** grid = map_file_to_grid(&nrows, &ncolumns);
+    int nrows, ncolumns;
+    struct Application application = {
+        .state = SETUP,
+        .grid = map_file_to_grid(&nrows, &ncolumns),
+        .start_point = {.x = -1, .y = -1},
+        .finish_point = {.x = -1, .y = -1},
+        .algorithm_run = 0
+    };
 
-    if(grid == NULL) {
+    if(application.grid == NULL) {
         return 1;
     }
-
-    cell* path = a_star(grid, nrows, ncolumns);
-    path_to_grid(path, grid);
 
     if(!glfwInit()) {
         return 1;
@@ -72,14 +155,40 @@ int main() {
     }
     glfwMakeContextCurrent(window);
 
-    glOrtho(0, ncolumns, 0, ncolumns, -1.0, 1.0);
+    glOrtho(0, nrows, 0, ncolumns, -1.0, 1.0);
 
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+
+    glfwSetWindowUserPointer(window, &application);
+
+    cell* path;
+
+    point start_point;
+    point finish_point;
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        draw_cells(grid, nrows, ncolumns);
+        if(application.state == SETUP) {
+        }
+
+        if(application.state == DRAW_PATH) {
+        }
+
+        if(application.state == RUN_ALGORITHM) {
+            if(application.algorithm_run == 0) {
+                path = a_star(application.grid, nrows, ncolumns, application.start_point, application.finish_point);
+                path_to_grid(path, application.grid);
+                application.algorithm_run = 1;
+            }
+        }
+        draw_cells(application.grid, nrows, ncolumns);
         draw_grid();
 
         glfwSwapBuffers(window);
