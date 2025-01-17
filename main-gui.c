@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 enum State {
     SETUP,
@@ -62,7 +63,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 
     // Run algorithm and draw its results
-    if(key == GLFW_KEY_S && action == GLFW_PRESS && application->start_point.x != -1 && application->start_point.x != -1 && application->finish_point.x != -1 && application->finish_point.y != -1) {
+    if(key == GLFW_KEY_S && action == GLFW_PRESS && application->start_point.x != -1 && application->start_point.x != -1 && application->finish_point.x != -1 && application->finish_point.y != -1 && application->state == SETUP) {
         application->state = RUN_ALGORITHM;
         application->algorithm_run = 0;
     }
@@ -258,11 +259,11 @@ int main() {
                     float calculated_path_sum = sum_path_value(path);
                     float drawn_path_sum = sum_path_value_with_length(application.drawn_path, application.drawn_path_index);
 
-                    float diff = drawn_path_sum - calculated_path_sum;
+                    float diff = roundf((drawn_path_sum - calculated_path_sum) * 100) / 100;
                     if(diff == 0) {
                         printf("Drawn path is best path available.\n");
                     } else if(diff > 0) {
-                        printf("Found better path! Value difference is: %f\n.", diff);
+                        printf("Found better path! Value difference is: %.2f\n.", diff);
                     }
                 }
             }
