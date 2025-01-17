@@ -11,13 +11,13 @@ float calculate_h(point current, point goal) {
     return sqrt(pow(current.x - goal.x, 2) + pow(current.y - goal.y, 2));
 }
 
-void reconstruct_path(cell current_cell, cell* path) {
+void reconstruct_path(cell current_cell, cell* path, int* length) {
     cell* path_cell = &current_cell;
+    *length = 0;
 
-    int path_index = 0;
     while(path_cell != NULL) {
         printf("(%d, %d)\n", path_cell->point.x, path_cell->point.y);
-        path[path_index++] = *path_cell;
+        path[(*length)++] = *path_cell;
         path_cell = path_cell->parent;
     }
 }
@@ -39,7 +39,7 @@ void remove_element(cell* array, int index, int* array_length) {
     --*array_length;
 }
 
-cell* a_star(int** grid, int nrows, int ncolumns, point start_point, point finish_point) {
+cell* a_star(int** grid, int nrows, int ncolumns, point start_point, point finish_point, int* path_length) {
     const int arr_size = nrows * ncolumns;
 
     cell* path = new_path(arr_size);
@@ -70,7 +70,7 @@ cell* a_star(int** grid, int nrows, int ncolumns, point start_point, point finis
 
         if(current_cell.point.x == finish_point.x && current_cell.point.y == finish_point.y) {
             printf("FOUND PATH, END ALGORITHM.\n\n");
-            reconstruct_path(current_cell, path);
+            reconstruct_path(current_cell, path, path_length);
 
             return path;
         }

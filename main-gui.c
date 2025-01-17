@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 enum State {
     SETUP,
@@ -146,6 +147,21 @@ void draw_cells(int** grid, int nrows, int ncolumns) {
     }
 }
 
+point* get_drawn_points(int** grid, const int nrows, const int ncolumns, int* count) {
+    point* points = malloc(nrows * ncolumns * sizeof(point));
+    *count = 0;
+
+    for(int y = 0; y < ncolumns; ++y) {
+        for(int x = 0; x < nrows; ++x) {
+            if(grid[y][x] == '7' || grid[y][x] == '9') {
+                points[(*count)++] = (point){.x = x, .y = y};
+            }
+        }
+    }
+
+    return points;
+}
+
 int main() {
     int nrows, ncolumns;
     struct Application application = {
@@ -167,7 +183,6 @@ int main() {
 
     GLFWwindow* window = glfwCreateWindow(800, 600, "AStar Algorithm", NULL, NULL);
     if(!window) {
-
         glfwTerminate();
         return 1;
     }
@@ -185,7 +200,6 @@ int main() {
     glfwSetWindowUserPointer(window, &application);
 
     cell* path;
-
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -193,9 +207,15 @@ int main() {
 
         if(application.state == RUN_ALGORITHM) {
             if(application.algorithm_run == 0) {
-                path = a_star(application.grid, nrows, ncolumns, application.start_point, application.finish_point);
+                int path_length;
+                path = a_star(application.grid, nrows, ncolumns, application.start_point, application.finish_point, &path_length);
                 path_to_grid(path, application.grid);
                 application.algorithm_run = 1;
+
+                if(application.user_drawn_path == true) {
+                    int point_count;
+                    point* drawn_points = get_drawn_points(application.grid, nrows, ncolumns, &point_count);
+                }
             }
         }
 
