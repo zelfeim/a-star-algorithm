@@ -21,7 +21,9 @@ struct Application {
     point start_point;
     point finish_point;
     int algorithm_run;
-
+    int drawn_path_index;
+    cell* drawn_path;
+    point drawn_path_parent_point;
     bool user_drawn_path;
 };
 
@@ -86,10 +88,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     // Select the cells
     if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         int* val = &application->grid[x][y];
-        if(application->state == RUN_ALGORITHM) {
-            clear_path_from_grid(application->grid, 20, 20);
-            application->state = SETUP;
-        }
 
         if(application->state == SETUP) {
             if(*val == '5') {
@@ -98,8 +96,36 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
                 *val = '5';
             }
         } else if(application->state == DRAW_PATH) {
-            if(*val == '0') {
-                *val = '9';
+            cell* new_cell = &application->drawn_path[application->drawn_path_index];
+            point* parent_point = &application->drawn_path_parent_point;
+
+            if( x == parent_point->x     && y == parent_point->y - 1 ||
+                x == parent_point->x     && y == parent_point->y + 1 ||
+                x == parent_point->x - 1 && y == parent_point->y     ||
+                x == parent_point->x + 1 && y == parent_point->y
+            ) {
+                if(*val == '0') {
+                    *val = '9';
+
+                    parent_point->x = x;
+                    parent_point->y = y;
+
+                    *new_cell = (cell){.point = *parent_point, .g = application->drawn_path_index, .parent = &application->drawn_path[application->drawn_path_index - 1]};
+                    new_cell->h = calculate_h(new_cell->point, application->finish_point);
+                    new_cell->f = new_cell->g + new_cell->h;
+
+                    application->drawn_path_index++;
+                } else if(*val == '2') {
+                    parent_point->x = x;
+                    parent_point->y = y;
+
+                    *new_cell = (cell){.point = *parent_point, .g = application->drawn_path_index, .parent = &application->drawn_path[application->drawn_path_index - 1]};
+                    new_cell->h = calculate_h(new_cell->point, application->finish_point);
+                    new_cell->f = new_cell->g + new_cell->h;
+
+                    application->drawn_path_index++;
+                    application->state = RUN_ALGORITHM;
+                }
             }
         }
     }
@@ -109,6 +135,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             application->start_point.x = x;
             application->start_point.y = y;
             application->grid[x][y] = '1';
+            application->drawn_path_parent_point = application->start_point;
         } else if(application->finish_point.x == -1 && application->finish_point.y == -1) {
             application->finish_point.x = x;
             application->finish_point.y = y;
@@ -147,19 +174,22 @@ void draw_cells(int** grid, int nrows, int ncolumns) {
     }
 }
 
-point* get_drawn_points(int** grid, const int nrows, const int ncolumns, int* count) {
-    point* points = malloc(nrows * ncolumns * sizeof(point));
-    *count = 0;
-
-    for(int y = 0; y < ncolumns; ++y) {
-        for(int x = 0; x < nrows; ++x) {
-            if(grid[y][x] == '7' || grid[y][x] == '9') {
-                points[(*count)++] = (point){.x = x, .y = y};
-            }
-        }
+float sum_path_value(cell* path) {
+    float sum = 0.0f;
+    for(int i = 0; path[i].parent != NULL; ++i) {
+        sum += path[i].f;
     }
 
-    return points;
+    return sum;
+}
+
+float sum_path_value_with_length(cell* path, int length) {
+    float sum = 0.0f;
+    for(int i = 0; i < length; ++i) {
+        sum += path[i].f;
+    }
+
+    return sum;
 }
 
 int main() {
@@ -170,8 +200,20 @@ int main() {
         .start_point = {.x = -1, .y = -1},
         .finish_point = {.x = -1, .y = -1},
         .algorithm_run = 0,
+        .drawn_path_index = 0,
+        .drawn_path_parent_point = {.x = -1, .y = -1},
+        .drawn_path = malloc(400 * sizeof(cell)),
         .user_drawn_path = 0
     };
+
+    // initalize drawn_path array
+    // TODO: to initializer function
+    application.drawn_path[0] = (cell){application.start_point, .g = 0, .h = calculate_h(application.start_point, application.finish_point), .parent = NULL};
+    application.drawn_path[0].f = application.drawn_path[0].g + application.drawn_path[0].h;
+    application.drawn_path_index++;
+    for(int i = 0; i < 400; ++i) {
+        application.drawn_path[i] = (cell){.parent = NULL};
+    }
 
     if(application.grid == NULL) {
         return 1;
@@ -213,8 +255,15 @@ int main() {
                 application.algorithm_run = 1;
 
                 if(application.user_drawn_path == true) {
-                    int point_count;
-                    point* drawn_points = get_drawn_points(application.grid, nrows, ncolumns, &point_count);
+                    float calculated_path_sum = sum_path_value(path);
+                    float drawn_path_sum = sum_path_value_with_length(application.drawn_path, application.drawn_path_index);
+
+                    float diff = drawn_path_sum - calculated_path_sum;
+                    if(diff == 0) {
+                        printf("Drawn path is best path available.\n");
+                    } else if(diff > 0) {
+                        printf("Found better path! Value difference is: %f\n.", diff);
+                    }
                 }
             }
         }
